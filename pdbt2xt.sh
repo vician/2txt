@@ -1,27 +1,32 @@
 #!/bin/bash
-# script prevede vsechny *.pdb v adtualnim adresari z cp-1250 do UTF-8 v txt formatu
-`./rename.sh`
-echo "Vytvarim adresar ./output"
-mkdir -p ./output
-echo "Kopiruji vsechny .pdb soubory do adresare ./output"
-cp ./*.pdb ./output/
-  
-echo "Konvertuji z pdb do txt"
-cd ./output
-for i in *.pdb
-do
-       echo -n -e "\rConverting PDB->TXT: $i                          \t\t\t\t"
-       txt2pdbdoc -d "./${i%%.pdb}.pdb" "./${i%%.pdb}.txt"
-       rm "./${i%%.pdb}.pdb"
-done
-  
-#echo
-echo "Prekodovavam z CP1250 do UTF8"
-for i in *.txt
-do
-       echo -n -e "\rRecoding: $i                                                          \t\t\t\t"
-       recode -v windows-1250..UTF-8 "./${i%%.txt}.txt"
-done
-  
-cd ..
-echo "Hotovo"
+
+which txt2pdbdoc 1>/dev/null 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "ERROR: Program 'txt2pdbdoc' isn't installed, please install it first!"
+  echo "TIP: Package 'txt2pdbdoc' on Debian/Ubuntu by: apt-get/aptitude install txt2pdbdoc"
+  exit 1;
+fi
+
+if [ $# -ne 2 ]; then
+  echo "ERROR: $0 Wrong params!"
+  echo "Run: $0 input_file output_file"
+  exit 1
+fi
+
+INPUT=$1
+OUTPUT=$2
+
+if [ ! -f $INPUT ]; then
+  echo "ERROR: Input file doesn't exist! ($INPUT)"
+  exit 1
+fi
+if [ ! -r $INPUT ]; then
+  echo "ERROR: Input file doesn't readable! ($INPUT)"
+  exit 1
+fi
+txt2pdbdoc -d $1 > $2
+if [ $? -ne 0 ]; then
+  echo "ERROR: Converting failed!"
+  exit 1
+fi
+echo "Converting sucesfull!"

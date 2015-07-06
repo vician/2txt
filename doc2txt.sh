@@ -1,28 +1,34 @@
 #!/bin/bash
-# script prevede vsechny *.pdb v adtualnim adresari z cp-1250 do UTF-8 v txt formatu
-`./rename.sh`
 
-echo "Vytvarim adresar ./output"
-mkdir -p ./output
-echo "Kopiruji vsechny .pdb soubory do adresare ./output"
-cp ./*.doc ./output/
+which catdoc 1>/dev/null 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "ERROR: Program 'catdoc' isn't installed, please install it first!"
+  echo "TIP: Package 'catdoc' on Fedora/CentOS by: yum/dnf install catdoc"
+  echo "TIP: Package 'catdoc' on Debian/Ubuntu by: apt-get/aptitud install catdoc"
+  exit 1;
+fi
 
-echo "Konvertuji z doc do txt"
-cd ./output
-for i in *.doc
-do
-       echo -n -e "\rConverting DOC->TXT: $i                          \t\t\t\t"
-       catdoc -w "./${i%%.doc}.doc" > "./${i%%.doc}.txt"
-       rm "./${i%%.doc}.doc"
-done
-  
-#echo
-echo "Prekodovavam z CP1250 do UTF8"
-for i in *.txt
-do
-       echo -n -e "\rRecoding: $i                                                          \t\t\t\t"
-       recode -v windows-1250..UTF-8 "./${i%%.txt}.txt"
-done
-  
-cd ..
-echo "Hotovo"
+if [ $# -ne 2 ]; then
+  echo "ERROR: $0 Wrong params!"
+  echo "Run: $0 input_file output_file"
+  exit 1
+fi
+
+INPUT=$1
+OUTPUT=$2
+
+if [ ! -f "$INPUT" ]; then
+  echo "ERROR: Input file doesn't exist! ($INPUT)"
+  exit 1
+fi
+if [ ! -r "$INPUT" ]; then
+  echo "ERROR: Input file doesn't readable! ($INPUT)"
+  exit 1
+fi
+echo "catdoc -w $INPUT > $OUTPUT"
+catdoc -w "$INPUT" > "$OUTPUT"
+if [ $? -ne 0 ]; then
+  echo "ERROR: Converting failed!"
+  exit 1
+fi
+echo "Converting sucesfull!"
