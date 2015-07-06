@@ -45,9 +45,16 @@ for file in "${files[@]}"; do
   file_ext="${file_base##*.}"
   echo "=> $file_name ($file_ext)"
   file_out="${OUTPUT_DIR}$file_name.txt"
+  reuslt=1
   if [ "$file_ext" == "pdb" ]; then
-    $PDB2TXT "$file" "$file_out" && mv "$file" "$DONE_DIR"
+    $PDB2TXT "$file" "$file_out"
+    result=$?
   elif [ "$file_ext" == "doc" ] || [ "$file_ext" == "rtf" ]; then
-    $DOC2TXT "$file" "$file_out" && mv "$file" "$DONE_DIR"
+    $DOC2TXT "$file" "$file_out"
+    result=$?
+  fi
+  if [ -f "$file_out" ] && [ $result -eq 0]; then
+    mv "$file" "$DONE_DIR"
+    $RECODE "$file_out"
   fi
 done
